@@ -15,11 +15,11 @@ public class UserDaoJDBCImpl implements UserDao {
     public void createUsersTable() throws SQLException {
         Connection connection = null;
         Statement statement = null;
+
         String s = "CREATE TABLE IF NOT EXISTS users " +
                 "(id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT, " +
                 "name VARCHAR(45) NOT NULL, lastName VARCHAR(45) NOT NULL, " +
                 "age INT NOT NULL)";
-
 
         try {
             connection = Util.getconnect();
@@ -28,7 +28,9 @@ public class UserDaoJDBCImpl implements UserDao {
             connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
+
             throw e;
+
         } finally {
             try {
                 if (statement != null) {
@@ -70,13 +72,14 @@ public class UserDaoJDBCImpl implements UserDao {
         }
     }
 
-    public void saveUser(String name, String lastName, byte age) {
+    public void saveUser(String name, String lastName, byte age) throws SQLException {
         Connection connection = null;
         PreparedStatement statement = null;
         String s = "INSERT INTO users.users" + "(name, lastName, age)" + "VALUES" + "(?,?,?)";
-
+        Savepoint savepoint = null;
         try {
             connection = Util.getconnect();
+            savepoint = connection.setSavepoint();
             statement = connection.prepareStatement(s);
             statement.setString(1, name);
             statement.setString(2, lastName);
@@ -87,6 +90,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
         } catch (SQLException e) {
             e.printStackTrace();
+            connection.rollback(savepoint);
         } finally {
             try {
                 if (statement != null) {
